@@ -67,6 +67,7 @@ const JsonEditor: React.FC<JsonEditorProps> = ({ onUpdate }) => {
   const [error, setError] = useState<string | null>(null);
   const [code, setCode] = useState(JSON.stringify(defaultValue, null, 2));
   const [isLoading, setIsLoading] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   useEffect(() => {
     handleValidation(code);
@@ -106,21 +107,44 @@ const JsonEditor: React.FC<JsonEditorProps> = ({ onUpdate }) => {
     }
   };
 
+  const handleCopyJson = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000); // Reset after 2 seconds
+    } catch (err) {
+      console.error("Failed to copy JSON", err);
+    }
+  };
   return (
     <div className="flex flex-col h-screen rounded-lg shadow-lg bg-white">
       <div className="bg-gray-50 p-4 border-b flex justify-between items-center">
         <div>
-          <h2 className="text-lg font-semibold text-gray-700">Form Schema Editor</h2>
+          <h2 className="text-lg font-semibold text-gray-700">
+            Form Schema Editor
+          </h2>
           <p className="text-sm text-gray-500 mt-1">
             Edit the JSON schema to customize your form
           </p>
         </div>
-        <button
-          onClick={formatJson}
-          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-        >
-          Format JSON
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleCopyJson}
+            className={`px-3 py-1 rounded transition-colors ${
+              copySuccess
+                ? "bg-green-500 hover:bg-green-600"
+                : "bg-gray-500 hover:bg-gray-600"
+            } text-white`}
+          >
+            {copySuccess ? "Copied!" : "Copy JSON"}
+          </button>
+          <button
+            onClick={formatJson}
+            className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          >
+            Format JSON
+          </button>
+        </div>
       </div>
       {error && (
         <div
