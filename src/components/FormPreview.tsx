@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   useForm,
   SubmitHandler,
@@ -102,11 +102,14 @@ const FormPreview: React.FC<FormPreviewProps> = ({ schema }) => {
     reset,
     formState: { errors },
   } = useForm();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onSubmit: SubmitHandler<any> = (data) => {
+    setIsSubmitting(true);
     console.log("Form Data:", data);
-    alert("Form submitted successfully!");
+    setIsSubmitting(false);
   };
+
   const handleReset = () => {
     reset();
   };
@@ -120,17 +123,22 @@ const FormPreview: React.FC<FormPreviewProps> = ({ schema }) => {
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="border-b pb-4">
-          <h1 className="text-2xl font-bold text-gray-900">
+    <div className="bg-white rounded-lg shadow-lg  p-4">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="space-y-4 md:space-y-6"
+      >
+        <div className="border-b pb-3 md:pb-4">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">
             {schema.formTitle}
           </h1>
-          <p className="mt-2 text-gray-600">{schema.formDescription}</p>
+          <p className="mt-1 md:mt-2 text-sm md:text-base text-gray-600">
+            {schema.formDescription}
+          </p>
         </div>
 
         {schema.fields.map((field) => (
-          <div key={field.id} className="space-y-2">
+          <div key={field.id} className="space-y-1 md:space-y-2">
             <label className="block text-sm font-medium text-gray-700">
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
@@ -141,24 +149,28 @@ const FormPreview: React.FC<FormPreviewProps> = ({ schema }) => {
               error={getErrorMessage(errors[field.id])}
             />
             {errors[field.id] && (
-              <p className="text-sm text-red-600">
+              <p className="text-xs md:text-sm text-red-600">
                 {getErrorMessage(errors[field.id])}
               </p>
             )}
           </div>
         ))}
 
-        <div className="pt-4 flex gap-2">
+        <div className="pt-4 flex flex-col sm:flex-row gap-2">
           <button
             type="submit"
-            className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            disabled={isSubmitting}
+            className="w-full sm:w-auto bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700
+                  transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500
+                  focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
           >
-            Submit
+            {isSubmitting ? "Submitting..." : "Submit"}
           </button>
           <button
             type="button"
             onClick={handleReset}
-            className="bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300"
+            className="w-full sm:w-auto bg-gray-200 text-gray-700 py-2 px-4 rounded-md
+                  hover:bg-gray-300 text-sm md:text-base"
           >
             Reset
           </button>
