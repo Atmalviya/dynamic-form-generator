@@ -2,11 +2,14 @@ import React, { useState } from "react";
 import JsonEditor from "./components/JsonEditor";
 import FormPreview from "./components/FormPreview";
 import { FormSchema } from "./types/schema";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const App: React.FC = () => {
   const [schema, setSchema] = useState<FormSchema | null>(null);
 
   return (
+
+    <ErrorBoundary>
     <div className="flex h-screen bg-gray-50">
       {/* JSON Editor */}
       <div className="w-1/2 p-6 flex flex-col overflow-hidden">
@@ -24,6 +27,8 @@ const App: React.FC = () => {
         <FormPreview schema={schema} />
       </div>
     </div>
+    </ErrorBoundary>
+
   );
 };
 

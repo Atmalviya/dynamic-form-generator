@@ -1,10 +1,21 @@
 import React from "react";
-import { useForm, SubmitHandler } from "react-hook-form";
+import {
+  useForm,
+  SubmitHandler,
+  FieldError,
+  FieldErrors,
+} from "react-hook-form";
 import type { FormSchema, FormField } from "../types/schema";
 
 interface FormPreviewProps {
-  schema: FormSchema;
+  schema: FormSchema | null;
 }
+const getErrorMessage = (
+  error: FieldError | FieldErrors | undefined,
+): string => {
+  if (!error) return "";
+  return error.message?.toString() || "This field is required";
+};
 
 const FormField: React.FC<{
   field: FormField;
@@ -88,12 +99,16 @@ const FormPreview: React.FC<FormPreviewProps> = ({ schema }) => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm();
 
   const onSubmit: SubmitHandler<any> = (data) => {
     console.log("Form Data:", data);
     alert("Form submitted successfully!");
+  };
+  const handleReset = () => {
+    reset();
   };
 
   if (!schema || !schema.fields) {
@@ -123,22 +138,29 @@ const FormPreview: React.FC<FormPreviewProps> = ({ schema }) => {
             <FormField
               field={field}
               register={register}
-              error={errors[field.id]?.message as string}
+              error={getErrorMessage(errors[field.id])}
             />
             {errors[field.id] && (
               <p className="text-sm text-red-600">
-                {errors[field.id]?.message || "This field is required"}
+                {getErrorMessage(errors[field.id])}
               </p>
             )}
           </div>
         ))}
 
-        <div className="pt-4">
+        <div className="pt-4 flex gap-2">
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             Submit
+          </button>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300"
+          >
+            Reset
           </button>
         </div>
       </form>

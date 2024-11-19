@@ -66,12 +66,14 @@ interface JsonEditorProps {
 const JsonEditor: React.FC<JsonEditorProps> = ({ onUpdate }) => {
   const [error, setError] = useState<string | null>(null);
   const [code, setCode] = useState(JSON.stringify(defaultValue, null, 2));
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     handleValidation(code);
   }, []);
 
   const handleValidation = (jsonString: string) => {
+    setIsLoading(true);
     try {
       const parsedJson = JSON.parse(jsonString);
       const validatedSchema = schemaValidator.parse(parsedJson);
@@ -85,6 +87,8 @@ const JsonEditor: React.FC<JsonEditorProps> = ({ onUpdate }) => {
       } else {
         setError("Invalid JSON schema");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -102,7 +106,6 @@ const JsonEditor: React.FC<JsonEditorProps> = ({ onUpdate }) => {
     }
   };
 
-  
   return (
     <div className="flex flex-col h-screen rounded-lg shadow-lg bg-white">
       <div className="bg-gray-50 p-4 border-b flex justify-between items-center">
@@ -120,23 +123,23 @@ const JsonEditor: React.FC<JsonEditorProps> = ({ onUpdate }) => {
         </button>
       </div>
       {error && (
-          <div
-            className="p-4 bg-red-50 border-t border-red-200 text-red-600 text-sm"
-            style={{
-              position: "sticky",
-              bottom: 0,
-              zIndex: 10,
-              backgroundColor: "#ffe5e5", 
-            }}
-          >
-            {error}
-          </div>
-        )}
+        <div
+          className="p-4 bg-red-50 border-t border-red-200 text-red-600 text-sm"
+          style={{
+            position: "sticky",
+            bottom: 0,
+            zIndex: 10,
+            backgroundColor: "#ffe5e5",
+          }}
+        >
+          {error}
+        </div>
+      )}
       <div className="flex flex-col flex-grow relative overflow-hidden">
         <div
           className="flex-grow overflow-auto"
           style={{
-            maxHeight: "calc(100vh - 150px)", 
+            maxHeight: "calc(100vh - 150px)",
           }}
         >
           <Editor
@@ -154,10 +157,14 @@ const JsonEditor: React.FC<JsonEditorProps> = ({ onUpdate }) => {
             textareaClassName="editor-textarea"
           />
         </div>
-      
       </div>
+      {isLoading && (
+        <div className="absolute inset-0 bg-white/50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        </div>
+      )}
     </div>
-  ); 
+  );
 };
 
 export default JsonEditor;
