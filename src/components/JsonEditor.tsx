@@ -1,57 +1,96 @@
-import React, { useState } from 'react';
-// import { jsonEditor as JSONEditor } from 'jsoneditor-react';
-// import JSONEditor from 'jsoneditor-react';
-import { JsonEditor as JSONEditor } from 'jsoneditor-react';
-
-
-import 'jsoneditor-react/es/editor.min.css';
-import { z } from 'zod';
-
+import React, { useState, useEffect } from "react";
+import Editor from "react-simple-code-editor";
+import { highlight, languages } from "prismjs";
+import "prismjs/components/prism-json";
+import "prismjs/themes/prism.css";
+import { z } from "zod";
+import type { FormSchema } from "../types/schema";
 const schemaValidator = z.object({
-  formTitle: z.string(),
-  formDescription: z.string(),
-  fields: z.array(
-    z.object({
-      id: z.string(),
-      type: z.enum(['text', 'email', 'select', 'radio', 'textarea']),
-      label: z.string(),
-      required: z.boolean(),
-      placeholder: z.string().optional(),
-      options: z.array(z.object({ value: z.string(), label: z.string() })).optional(),
-      validation: z
-        .object({
-          pattern: z.string(),
-          message: z.string(),
-        })
-        .optional(),
-    })
-  ),
-});
+    formTitle: z.string(),
+    formDescription: z.string(),
+    fields: z.array(
+      z.object({
+        id: z.string(),
+        type: z.enum(['text', 'email', 'select', 'radio', 'textarea']),
+        label: z.string(),
+        required: z.boolean(),
+        placeholder: z.string().optional(),
+        options: z.array(z.object({ value: z.string(), label: z.string() })).optional(),
+        validation: z
+          .object({
+            pattern: z.string(),
+            message: z.string(),
+          })
+          .optional(),
+      })
+    ),
+  });
 
-const JsonEditor: React.FC<{ onUpdate: (schema: any) => void }> = ({ onUpdate }) => {
+const defaultValue: FormSchema = {
+  formTitle: "New Form",
+  formDescription: "Please fill out this form",
+  fields: [],
+};
+
+interface JsonEditorProps {
+  onUpdate: (schema: FormSchema) => void;
+}
+
+const JsonEditor: React.FC<JsonEditorProps> = ({ onUpdate }) => {
   const [error, setError] = useState<string | null>(null);
+  const [code, setCode] = useState(JSON.stringify(defaultValue, null, 2));
 
-  const handleChange = (updatedSchema: any) => {
+  useEffect(() => {
+    handleValidation(code);
+  }, []);
+
+  const handleValidation = (jsonString: string) => {
     try {
-      schemaValidator.parse(updatedSchema);
+      const parsedJson = JSON.parse(jsonString);
+      const validatedSchema = schemaValidator.parse(parsedJson);
       setError(null);
-      onUpdate(updatedSchema);
+      onUpdate(validatedSchema);
     } catch (err) {
-      setError('Invalid JSON schema');
+      if (err instanceof z.ZodError) {
+        setError(err.errors[0].message);
+      } else if (err instanceof SyntaxError) {
+        setError("Invalid JSON syntax");
+      } else {
+        setError("Invalid JSON schema");
+      }
     }
   };
 
+  const handleChange = (value: string) => {
+    setCode(value);
+    handleValidation(value);
+  };
+
   return (
-    <div className="h-full">
-      <JSONEditor
-        value={{
-          formTitle: '',
-          formDescription: '',
-          fields: [],
+    <div className="flex flex-col h-full rounded-lg shadow-lg bg-white">
+
+
+      <div
+        className="flex-grow overflow-auto"
+        style={{
+          maxHeight: "calc(100vh - 200px)", 
         }}
-        onChange={handleChange}
-        mode="code"
-      />
+      >
+        <Editor
+          value={code}
+          onValueChange={handleChange}
+          highlight={(code) => highlight(code, languages.json, "json")}
+          padding={16}
+          style={{
+            fontFamily: '"Fira code", "Fira Mono", monospace',
+            fontSize: 14,
+            width: "100%",
+            backgroundColor: "#ffffff",
+          }}
+          className="min-h-full"
+        />
+      </div>
+
       {error && <p className="text-red-500">{error}</p>}
     </div>
   );
